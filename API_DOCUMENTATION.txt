@@ -1,0 +1,652 @@
+================================================================================
+                    DOCUMENTACIÓN API - SISTEMA RESTAURANTE
+================================================================================
+
+DESARROLLO: http://localhost:8081/api
+PRODUCCIÓN: https://tu-app-restaurante.onrender.com/api
+
+ENDPOINTS DE VERIFICACIÓN:
+GET / - Información del servicio
+GET /health - Estado de salud del servicio
+
+HEADERS RECOMENDADOS:
+Content-Type: application/json
+Accept: application/json
+
+================================================================================
+                               CATEGORÍAS
+================================================================================
+
+1. OBTENER TODAS LAS CATEGORÍAS
+   GET /api/categorias
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "nombre": "Bebidas",
+       "cantidadProductos": 5
+     },
+     {
+       "id": 2,
+       "nombre": "Comidas",
+       "cantidadProductos": 8
+     }
+   ]
+
+2. OBTENER CATEGORÍA POR ID
+   GET /api/categorias/{id}
+   
+   Respuesta 200:
+   {
+     "id": 1,
+     "nombre": "Bebidas",
+     "cantidadProductos": 5
+   }
+
+3. CREAR NUEVA CATEGORÍA
+   POST /api/categorias
+   
+   Body:
+   {
+     "nombre": "Postres"
+   }
+   
+   Respuesta 201:
+   {
+     "id": 3,
+     "nombre": "Postres",
+     "cantidadProductos": 0
+   }
+
+4. ACTUALIZAR CATEGORÍA
+   PUT /api/categorias/{id}
+   
+   Body:
+   {
+     "nombre": "Bebidas Frías"
+   }
+   
+   Respuesta 200:
+   {
+     "id": 1,
+     "nombre": "Bebidas Frías",
+     "cantidadProductos": 5
+   }
+
+5. ELIMINAR CATEGORÍA
+   DELETE /api/categorias/{id}
+   
+   Respuesta 204: No Content
+
+================================================================================
+                               PRODUCTOS
+================================================================================
+
+1. OBTENER TODOS LOS PRODUCTOS
+   GET /api/productos
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "nombre": "Pizza Margherita",
+       "descripcion": "Pizza con tomate, mozzarella y albahaca",
+       "precio": 25.50,
+       "categoriaId": 2,
+       "nombreCategoria": "Comidas",
+       "cantidadStock": 10
+     }
+   ]
+
+2. OBTENER PRODUCTOS DISPONIBLES (CON STOCK)
+   GET /api/productos/disponibles
+   
+   Respuesta 200: [Mismo formato que arriba, solo productos con stock > 0]
+
+3. OBTENER PRODUCTO POR ID
+   GET /api/productos/{id}
+   
+   Respuesta 200:
+   {
+     "id": 1,
+     "nombre": "Pizza Margherita",
+     "descripcion": "Pizza con tomate, mozzarella y albahaca",
+     "precio": 25.50,
+     "categoriaId": 2,
+     "nombreCategoria": "Comidas",
+     "cantidadStock": 10
+   }
+
+4. OBTENER PRODUCTOS POR CATEGORÍA
+   GET /api/productos/categoria/{categoriaId}
+   
+   Respuesta 200: [Array de productos de esa categoría]
+
+5. CREAR NUEVO PRODUCTO
+   POST /api/productos
+   
+   Body:
+   {
+     "nombre": "Hamburguesa Clásica",
+     "descripcion": "Hamburguesa con carne, lechuga, tomate",
+     "precio": 18.00,
+     "categoriaId": 2,
+     "cantidadStock": 15
+   }
+   
+   Respuesta 201:
+   {
+     "id": 2,
+     "nombre": "Hamburguesa Clásica",
+     "descripcion": "Hamburguesa con carne, lechuga, tomate",
+     "precio": 18.00,
+     "categoriaId": 2,
+     "nombreCategoria": "Comidas",
+     "cantidadStock": 15
+   }
+
+6. ACTUALIZAR PRODUCTO
+   PUT /api/productos/{id}
+   
+   Body:
+   {
+     "nombre": "Pizza Margherita Especial",
+     "descripcion": "Pizza con tomate, mozzarella premium y albahaca",
+     "precio": 28.00,
+     "categoriaId": 2
+   }
+   
+   Respuesta 200: [Producto actualizado]
+
+7. ELIMINAR PRODUCTO
+   DELETE /api/productos/{id}
+   
+   Respuesta 204: No Content
+
+================================================================================
+                                 MESAS
+================================================================================
+
+1. OBTENER TODAS LAS MESAS
+   GET /api/mesas
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "numeroMesa": 1,
+       "estado": "LIBRE"
+     },
+     {
+       "id": 2,
+       "numeroMesa": 2,
+       "estado": "OCUPADA"
+     }
+   ]
+
+2. OBTENER MESA POR ID
+   GET /api/mesas/{id}
+   
+   Respuesta 200:
+   {
+     "id": 1,
+     "numeroMesa": 1,
+     "estado": "LIBRE"
+   }
+
+3. OBTENER MESAS POR ESTADO
+   GET /api/mesas/estado/{estado}
+   Estados válidos: LIBRE, OCUPADA, RESERVADA
+   
+   Respuesta 200: [Array de mesas con ese estado]
+
+4. CREAR NUEVA MESA
+   POST /api/mesas
+   
+   Body:
+   {
+     "numeroMesa": 10
+   }
+   
+   Respuesta 201:
+   {
+     "id": 10,
+     "numeroMesa": 10,
+     "estado": "LIBRE"
+   }
+
+5. ACTUALIZAR MESA
+   PUT /api/mesas/{id}
+   
+   Body:
+   {
+     "numeroMesa": 10,
+     "estado": "RESERVADA"
+   }
+   
+   Respuesta 200: [Mesa actualizada]
+
+6. CAMBIAR ESTADO DE MESA
+   PATCH /api/mesas/{id}/estado?estado=OCUPADA
+   
+   Respuesta 200: [Mesa con estado actualizado]
+
+7. ELIMINAR MESA
+   DELETE /api/mesas/{id}
+   
+   Respuesta 204: No Content
+
+================================================================================
+                               CLIENTES
+================================================================================
+
+1. OBTENER TODOS LOS CLIENTES
+   GET /api/clientes
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "nombre": "Juan Pérez",
+       "telefono": "1234567890",
+       "correo": "juan@email.com"
+     }
+   ]
+
+2. OBTENER CLIENTE POR ID
+   GET /api/clientes/{id}
+   
+   Respuesta 200:
+   {
+     "id": 1,
+     "nombre": "Juan Pérez",
+     "telefono": "1234567890",
+     "correo": "juan@email.com"
+   }
+
+3. BUSCAR CLIENTE POR TELÉFONO
+   GET /api/clientes/telefono/{telefono}
+   
+   Respuesta 200: [Cliente encontrado]
+
+4. BUSCAR CLIENTES POR NOMBRE
+   GET /api/clientes/buscar?nombre=Juan
+   
+   Respuesta 200: [Array de clientes que coincidan]
+
+5. CREAR NUEVO CLIENTE
+   POST /api/clientes
+   
+   Body:
+   {
+     "nombre": "María González",
+     "telefono": "0987654321",
+     "correo": "maria@email.com"
+   }
+   
+   Respuesta 201: [Cliente creado]
+
+6. ACTUALIZAR CLIENTE
+   PUT /api/clientes/{id}
+   
+   Body: [Mismo formato que crear]
+   
+   Respuesta 200: [Cliente actualizado]
+
+7. ELIMINAR CLIENTE
+   DELETE /api/clientes/{id}
+   
+   Respuesta 204: No Content
+
+================================================================================
+                               EMPLEADOS
+================================================================================
+
+1. OBTENER TODOS LOS EMPLEADOS
+   GET /api/empleados
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "nombre": "María García",
+       "rol": "MESERO",
+       "telefono": "0987654321",
+       "correo": "maria@restaurante.com"
+     }
+   ]
+
+2. OBTENER EMPLEADO POR ID
+   GET /api/empleados/{id}
+   
+   Respuesta 200: [Empleado específico]
+
+3. OBTENER EMPLEADOS POR ROL
+   GET /api/empleados/rol/{rol}
+   Roles válidos: MESERO, COCINERO, CAJERO, ADMIN
+   
+   Respuesta 200: [Array de empleados con ese rol]
+
+4. CREAR NUEVO EMPLEADO
+   POST /api/empleados
+   
+   Body:
+   {
+     "nombre": "Carlos López",
+     "rol": "COCINERO",
+     "telefono": "1122334455",
+     "correo": "carlos@restaurante.com"
+   }
+   
+   Respuesta 201: [Empleado creado]
+
+5. ACTUALIZAR EMPLEADO
+   PUT /api/empleados/{id}
+   
+   Body: [Mismo formato que crear]
+   
+   Respuesta 200: [Empleado actualizado]
+
+6. ELIMINAR EMPLEADO
+   DELETE /api/empleados/{id}
+   
+   Respuesta 204: No Content
+
+================================================================================
+                                PEDIDOS
+================================================================================
+
+1. OBTENER TODOS LOS PEDIDOS
+   GET /api/pedidos
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "mesaId": 1,
+       "numeroMesa": 5,
+       "clienteId": 1,
+       "nombreCliente": "Juan Pérez",
+       "empleadoId": 1,
+       "nombreEmpleado": "María García",
+       "fecha": "2025-05-28T20:30:00",
+       "estado": "PENDIENTE",
+       "total": 45.50,
+       "detalles": [
+         {
+           "id": 1,
+           "pedidoId": 1,
+           "productoId": 1,
+           "nombreProducto": "Pizza Margherita",
+           "cantidad": 2,
+           "precioUnitario": 25.50,
+           "subtotal": 51.00
+         }
+       ]
+     }
+   ]
+
+2. OBTENER PEDIDO POR ID
+   GET /api/pedidos/{id}
+   
+   Respuesta 200: [Pedido específico con formato arriba]
+
+3. OBTENER PEDIDOS POR ESTADO
+   GET /api/pedidos/estado/{estado}
+   Estados válidos: PENDIENTE, EN_PREPARACION, SERVIDO, CANCELADO
+   
+   Respuesta 200: [Array de pedidos con ese estado]
+
+4. CREAR NUEVO PEDIDO
+   POST /api/pedidos
+   
+   Body:
+   {
+     "mesaId": 1,
+     "clienteId": 1,
+     "empleadoId": 1
+   }
+   
+   Respuesta 201: [Pedido creado sin detalles]
+
+5. ACTUALIZAR PEDIDO
+   PUT /api/pedidos/{id}
+   
+   Body:
+   {
+     "estado": "EN_PREPARACION"
+   }
+   
+   Respuesta 200: [Pedido actualizado]
+
+6. AGREGAR PRODUCTO AL PEDIDO
+   POST /api/pedidos/{id}/detalles
+   
+   Body:
+   {
+     "productoId": 1,
+     "cantidad": 2
+   }
+   
+   Respuesta 200: [Pedido actualizado con nuevo detalle]
+
+================================================================================
+                               INVENTARIO
+================================================================================
+
+1. OBTENER TODO EL INVENTARIO
+   GET /api/inventario
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "productoId": 1,
+       "nombreProducto": "Pizza Margherita",
+       "cantidadStock": 25,
+       "fechaActualizacion": "2025-05-28T20:30:00"
+     }
+   ]
+
+2. OBTENER INVENTARIO POR ID
+   GET /api/inventario/{id}
+   
+   Respuesta 200: [Registro específico]
+
+3. OBTENER PRODUCTOS CON STOCK BAJO
+   GET /api/inventario/stock-bajo?minimo=5
+   
+   Respuesta 200: [Array de productos con stock <= minimo]
+
+4. CREAR REGISTRO DE INVENTARIO
+   POST /api/inventario
+   
+   Body:
+   {
+     "productoId": 1,
+     "cantidadStock": 50
+   }
+   
+   Respuesta 201: [Registro creado]
+
+5. ACTUALIZAR INVENTARIO
+   PUT /api/inventario/{id}
+   
+   Body:
+   {
+     "cantidadStock": 30
+   }
+   
+   Respuesta 200: [Inventario actualizado]
+
+6. ACTUALIZAR STOCK ESPECÍFICO
+   PUT /api/inventario/producto/{productoId}/stock?cantidad=50
+   
+   Respuesta 200: [Stock actualizado]
+
+7. ELIMINAR REGISTRO
+   DELETE /api/inventario/{id}
+   
+   Respuesta 204: No Content
+
+================================================================================
+                               FACTURAS
+================================================================================
+
+1. OBTENER TODAS LAS FACTURAS
+   GET /api/facturas
+   
+   Respuesta 200:
+   [
+     {
+       "id": 1,
+       "pedidoId": 1,
+       "numeroMesa": 5,
+       "fecha": "2025-05-28T20:45:00",
+       "total": 45.50,
+       "empleadoId": 1,
+       "nombreEmpleado": "María García"
+     }
+   ]
+
+2. OBTENER FACTURA POR ID
+   GET /api/facturas/{id}
+   
+   Respuesta 200: [Factura específica]
+
+3. CREAR FACTURA PARA PEDIDO
+   POST /api/facturas/pedido/{pedidoId}/empleado/{empleadoId}
+   
+   Respuesta 201: [Factura creada]
+
+4. OBTENER FACTURAS POR PERÍODO
+   GET /api/facturas/periodo?inicio=2025-05-01T00:00:00&fin=2025-05-31T23:59:59
+   
+   Respuesta 200: [Array de facturas en ese período]
+
+5. OBTENER TOTAL DE VENTAS
+   GET /api/facturas/ventas-total?inicio=2025-05-01T00:00:00&fin=2025-05-31T23:59:59
+   
+   Respuesta 200: 1250.75
+
+================================================================================
+                          CÓDIGOS DE RESPUESTA HTTP
+================================================================================
+
+200 - OK (Operación exitosa)
+201 - Created (Recurso creado exitosamente)
+204 - No Content (Eliminación exitosa)
+400 - Bad Request (Datos inválidos o faltantes)
+404 - Not Found (Recurso no encontrado)
+500 - Internal Server Error (Error del servidor)
+
+================================================================================
+                            EJEMPLOS DE USO EN JAVASCRIPT
+================================================================================
+
+// Configuración base
+const API_BASE_URL = 'http://localhost:8081/api';
+
+const headers = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json'
+};
+
+// Obtener categorías
+const getCategorias = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/categorias`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+
+// Crear categoría
+const createCategoria = async (categoria) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/categorias`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(categoria)
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+
+// Crear pedido completo
+const createPedidoCompleto = async (pedidoData) => {
+  try {
+    // 1. Crear pedido
+    const pedido = await fetch(`${API_BASE_URL}/pedidos`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        mesaId: pedidoData.mesaId,
+        clienteId: pedidoData.clienteId,
+        empleadoId: pedidoData.empleadoId
+      })
+    });
+    const pedidoCreado = await pedido.json();
+    
+    // 2. Agregar productos
+    for (const detalle of pedidoData.detalles) {
+      await fetch(`${API_BASE_URL}/pedidos/${pedidoCreado.id}/detalles`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          productoId: detalle.productoId,
+          cantidad: detalle.cantidad
+        })
+      });
+    }
+    
+    return pedidoCreado;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+
+================================================================================
+                               VALIDACIONES
+================================================================================
+
+CAMPOS OBLIGATORIOS:
+- Categoria: nombre
+- Producto: nombre, precio, categoriaId
+- Mesa: numeroMesa
+- Empleado: nombre, rol
+- Pedido: mesaId
+- DetallePedido: productoId, cantidad
+
+FORMATOS ESPECIALES:
+- Email: debe tener formato válido
+- Precio: debe ser > 0
+- Cantidad: debe ser > 0
+- Fechas: formato ISO 8601 (YYYY-MM-DDTHH:mm:ss)
+
+RESTRICCIONES DE NEGOCIO:
+- No se puede eliminar categoría con productos
+- Mesa no puede tener más de un pedido activo
+- Solo pedidos SERVIDOS pueden generar factura
+- No se pueden modificar pedidos SERVIDOS o CANCELADOS
+
+================================================================================
+                                   NOTAS
+================================================================================
+
+1. Todas las rutas están habilitadas con CORS para desarrollo
+2. Las fechas se manejan en formato ISO 8601
+3. Los IDs son autogenerados (no enviar en POST)
+4. Los campos opcionales pueden enviarse como null
+5. La paginación no está implementada (futuro mejora)
+6. No hay autenticación implementada (futuro mejora)
+
+================================================================================
+                                 FIN DOCUMENTACIÓN
+================================================================================
