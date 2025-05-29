@@ -5,27 +5,158 @@
 DESARROLLO: http://localhost:8081/api
 PRODUCCIÓN: https://restaurante-api.onrender.com/api
 
-🔧 ENDPOINTS DE DEBUG:
+🚨 TROUBLESHOOTING RENDER - ACTUALIZADO
+
+PROBLEMA ACTUAL: API no responde en Render
+SÍNTOMAS: "Failed to fetch" en frontend y Postman
+
+🔧 ENDPOINTS DE DEBUG MEJORADOS:
 GET / - Información completa del servicio + endpoints disponibles
-GET /health - Estado de salud detallado
+GET /health - Estado de salud detallado con info de BD
 GET /ping - Ping rápido para verificación
 GET /test-cors - Test de configuración CORS
+GET /debug - 🆕 Información completa de debugging
 
-🤖 KEEP-ALIVE AUTOMÁTICO: El servicio se mantiene activo automáticamente
-⏰ HORARIOS OPTIMIZADOS:
-   - Ping cada 10 minutos (24/7)
-   - Ping cada 5 minutos (8 AM - 10 PM)
-   - Ping cada 3 minutos (horas pico: 12-2 PM y 7-9 PM)
+📊 VERIFICACIONES PASO A PASO:
 
-HEADERS RECOMENDADOS:
-Content-Type: application/json
-Accept: application/json
+1. ✅ VERIFICAR SI EL SERVICIO ESTÁ DESPLEGADO:
+   curl https://restaurante-api.onrender.com/health
+   
+   Si responde: ✅ Servicio activo
+   Si no responde: ❌ Servicio caído o no desplegado
+
+2. ✅ VERIFICAR LOGS EN RENDER:
+   - Ir a Render Dashboard
+   - Seleccionar el servicio "restaurante-api"
+   - Ver "Logs" en tiempo real
+   - Buscar errores de inicio o deployment
+
+3. ✅ VERIFICAR VARIABLES DE ENTORNO:
+   curl https://restaurante-api.onrender.com/debug
+   
+   Debería mostrar:
+   - RENDER: "true"
+   - RENDER_EXTERNAL_URL: URL del servicio
+   - PORT: Puerto asignado
+   - DATABASE_URL: "***SET***"
+
+4. ✅ VERIFICAR ESTADO DE LA BASE DE DATOS:
+   - En Render Dashboard ir a PostgreSQL database
+   - Verificar que esté "Available"
+   - Verificar conexiones activas
+
+5. ✅ FORZAR REDEPLOY:
+   - En Render Dashboard > Manual Deploy
+   - O hacer push a GitHub para trigger automático
 
 🛠️ CORS CONFIGURADO CORRECTAMENTE:
 - allowedOriginPatterns: * (permite todos los orígenes)
 - allowCredentials: false (compatible con origen "*")
 - Métodos permitidos: GET, POST, PUT, DELETE, OPTIONS, PATCH
 - Headers permitidos: todos (*)
+
+🤖 KEEP-ALIVE MEJORADO PARA RENDER:
+⏰ HORARIOS OPTIMIZADOS:
+   - Ping cada 5 minutos (24/7) - Solo en Render
+   - Ping cada 2 minutos (8 AM - 10 PM) - Horas laborales
+   - Ping cada 20 minutos - Warm-up service
+
+🚨 COMANDOS DE VERIFICACIÓN INMEDIATA:
+
+# Test básico de conectividad
+curl -v https://restaurante-api.onrender.com/ping
+
+# Test de salud completo
+curl https://restaurante-api.onrender.com/health
+
+# Test de debug (info completa)
+curl https://restaurante-api.onrender.com/debug
+
+# Test de API empleados
+curl https://restaurante-api.onrender.com/api/empleados
+
+# Test de CORS
+curl -H "Origin: http://localhost:3000" \
+     -H "Access-Control-Request-Method: GET" \
+     -H "Access-Control-Request-Headers: X-Requested-With" \
+     -X OPTIONS \
+     https://restaurante-api.onrender.com/api/empleados
+
+📱 CONFIGURACIÓN FRONTEND ACTUALIZADA:
+
+// ✅ CONFIGURACIÓN ROBUSTA PARA FRONTEND
+const API_BASE_URL = 'https://restaurante-api.onrender.com/api';
+
+// Test de conectividad mejorado
+const testConnection = async () => {
+  const endpoints = ['/health', '/ping', '/'];
+  
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(`https://restaurante-api.onrender.com${endpoint}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ Endpoint ${endpoint} funcionando:`, data);
+        return true;
+      }
+    } catch (error) {
+      console.error(`❌ Endpoint ${endpoint} falló:`, error);
+    }
+  }
+  
+  console.error('🔴 Todos los endpoints fallaron - API no disponible');
+  return false;
+};
+
+// Función de request con retry
+const apiRequestWithRetry = async (endpoint, options = {}, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...options.headers 
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.status === 204 ? null : await response.json();
+    } catch (error) {
+      console.error(`❌ Intento ${i + 1} falló:`, error);
+      if (i === retries - 1) throw error;
+      
+      // Esperar antes del siguiente intento
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+};
+
+🔍 POSIBLES CAUSAS DEL PROBLEMA:
+
+1. ❌ SERVICIO NO DESPLEGADO CORRECTAMENTE
+   - Verificar en Render Dashboard que el deploy fue exitoso
+   - Revisar logs de build y deploy
+
+2. ❌ ERROR EN VARIABLES DE ENTORNO
+   - Verificar DATABASE_URL en Render
+   - Verificar RENDER_EXTERNAL_URL
+
+3. ❌ PROBLEMA DE BASE DE DATOS
+   - PostgreSQL database desconectada
+   - Credenciales incorrectas
+
+4. ❌ PROBLEMA DE MEMORIA/RECURSOS
+   - Render Free Tier limitations
+   - Service sleeping por inactividad
+
+5. ❌ ERROR EN EL CÓDIGO
+   - Exception al iniciar la aplicación
+   - Dependency injection problems
 
 ================================================================================
                             CONFIGURACIÓN PARA FRONTEND
@@ -623,6 +754,46 @@ CORS TESTING:
 - ✅ Browser: No hay errores CORS
 - ✅ Frontend: Puede consumir la API sin problemas
 - ✅ Keep-alive: Funciona correctamente
+
+================================================================================
+                          🆕 CORS ISSUE RESUELTO
+================================================================================
+
+✅ PROBLEMA CORREGIDO:
+El error "When allowCredentials is true, allowedOrigins cannot contain '*'" ha sido resuelto.
+
+✅ VERIFICACIÓN RENDER:
+1. Acceder a https://restaurante-api.onrender.com/health
+2. Debería retornar JSON con status: "UP"
+3. Si no responde, el servicio está caído
+
+✅ ACCIONES INMEDIATAS SI NO FUNCIONA:
+1. Revisar Render Dashboard logs
+2. Hacer Manual Deploy en Render
+3. Verificar PostgreSQL database status
+4. Contactar soporte de Render si persiste
+
+================================================================================
+                                   NOTAS ACTUALIZADAS
+================================================================================
+
+1. ✅ API disponible 24/7 con keep-alive automático MEJORADO
+2. ✅ CORS habilitado para todos los orígenes - CORREGIDO
+3. ✅ Debugging endpoints agregados para troubleshooting
+4. ✅ Keep-alive optimizado específicamente para Render
+5. ✅ Retry logic en frontend para mejor resilencia
+6. ✅ Monitoreo mejorado con logs detallados
+
+🚨 ESTADO ACTUAL: INVESTIGANDO PROBLEMA EN RENDER
+- Servicio funciona en local ✅
+- Servicio no responde en Render ❌
+- Necesita verificación de deployment y logs
+
+DEBUGGING PRIORITARIO:
+- 🔍 Verificar Render Dashboard estado del servicio
+- 🌐 Probar endpoints básicos con curl
+- 📡 Revisar logs de deployment y runtime
+- 🔄 Considerar redeploy manual si es necesario
 
 ================================================================================
                                  FIN DOCUMENTACIÓN
