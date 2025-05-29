@@ -1,61 +1,52 @@
 package com.proyecto.restaurante.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "pedidos")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Pedido {
+@EqualsAndHashCode(callSuper = false)
+public class Pedido extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotNull(message = "La mesa es obligatoria")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_mesa", nullable = false)
+    @JoinColumn(name = "mesa_id", nullable = false)
     private Mesa mesa;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_cliente")
+    @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_empleado")
+    @JoinColumn(name = "empleado_id", nullable = false)
     private Empleado empleado;
 
     @Column(nullable = false)
     private LocalDateTime fecha = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal total = BigDecimal.ZERO;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetallePedido> detalles = new ArrayList<>();
-
-    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Factura factura;
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<DetallePedido> detalles;
 
     public enum EstadoPedido {
         PENDIENTE, EN_PREPARACION, SERVIDO, CANCELADO
     }
 
     public BigDecimal calcularTotal() {
+        if (detalles == null || detalles.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
         return detalles.stream()
                 .map(DetallePedido::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

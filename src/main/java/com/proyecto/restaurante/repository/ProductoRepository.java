@@ -14,7 +14,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     List<Producto> findByCategoria(Categoria categoria);
 
-    @Query("SELECT p FROM Producto p WHERE p.nombre LIKE %:nombre%")
+    @Query("SELECT p FROM Producto p WHERE LOWER(p.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))")
     List<Producto> findByNombreContaining(@Param("nombre") String nombre);
 
     @Query("SELECT p FROM Producto p LEFT JOIN p.inventario i WHERE i.cantidadStock > 0 OR i.cantidadStock IS NULL")

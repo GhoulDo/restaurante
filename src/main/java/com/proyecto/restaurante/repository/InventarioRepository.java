@@ -13,10 +13,14 @@ import java.util.Optional;
 @Repository
 public interface InventarioRepository extends JpaRepository<Inventario, Long> {
 
-    Optional<Inventario> findByProducto(Producto producto);
+    @Query("SELECT i FROM Inventario i WHERE i.cantidadStock <= :minimo")
+    List<Inventario> findByStockBajo(@Param("minimo") Integer minimo);
 
     @Query("SELECT i FROM Inventario i WHERE i.cantidadStock <= :minimo")
-    List<Inventario> findProductosConStockBajo(@Param("minimo") Integer stockMinimo);
+    List<Inventario> findProductosConStockBajo(@Param("minimo") Integer minimo);
 
-    List<Inventario> findByCantidadStockGreaterThan(Integer cantidad);
+    Optional<Inventario> findByProducto(Producto producto);
+
+    @Query("SELECT i FROM Inventario i WHERE i.producto.id = :productoId")
+    Optional<Inventario> findByProductoId(@Param("productoId") Long productoId);
 }

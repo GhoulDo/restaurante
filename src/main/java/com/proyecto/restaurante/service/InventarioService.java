@@ -83,4 +83,10 @@ public class InventarioService {
                 inventario.getCantidadStock(),
                 inventario.getFechaActualizacion());
     }
+
+    public InventarioDTO findByProductoId(Long productoId) {
+        Inventario inventario = inventarioRepository.findByProductoId(productoId)
+                .orElseThrow(() -> new RuntimeException("Inventario no encontrado para el producto"));
+        return convertToDTO(inventario);
+    }
 }

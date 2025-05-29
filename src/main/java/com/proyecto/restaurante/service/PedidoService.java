@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,10 +41,12 @@ public class PedidoService {
         Mesa mesa = mesaRepository.findById(pedidoDTO.getMesaId())
                 .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
 
-        // Validar que la mesa no tenga un pedido activo
-        if (pedidoRepository.existsByMesaAndEstadoIn(mesa,
-                Arrays.asList(Pedido.EstadoPedido.PENDIENTE, Pedido.EstadoPedido.EN_PREPARACION))) {
-            throw new RuntimeException("La mesa ya tiene un pedido activo");
+        // Verificar que la mesa no tenga pedidos activos
+        boolean tienepedidosActivos = pedidoRepository.existsByMesaAndEstadoIn(mesa,
+                Arrays.asList(Pedido.EstadoPedido.PENDIENTE, Pedido.EstadoPedido.EN_PREPARACION));
+
+        if (tienepedidosActivos) {
+            throw new RuntimeException("La mesa ya tiene pedidos activos");
         }
 
         Pedido pedido = new Pedido();
@@ -128,41 +131,84 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
+    public List<PedidoDTO> findByMesa(Long mesaId) {
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
+        return pedidoRepository.findByMesa(mesa).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public PedidoDTO agregarProducto(Long pedidoId, DetallePedidoDTO detallePedidoDTO) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+
+        Producto producto = productoRepository.findById(detallePedidoDTO.getProductoId())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        DetallePedido detalle = new DetallePedido();
+        detalle.setPedido(pedido);
+        detalle.setProducto(producto);
+        detalle.setCantidad(detallePedidoDTO.getCantidad());
+        detalle.setPrecioUnitario(producto.getPrecio());
+        // El método calcularSubtotal() se ejecuta automáticamente en @PrePersist
+
+        detallePedidoRepository.save(detalle);
+
+        // Actualizar el total del pedido
+        pedido.setTotal(calcularTotalPedido(pedido));
+        pedidoRepository.save(pedido);
+
+        return convertToDTO(pedido);
+    }
+
+    public void delete(Long id) {
+        if (!pedidoRepository.existsById(id)) {
+            throw new RuntimeException("Pedido no encontrado");
+        }
+        pedidoRepository.deleteById(id);
+    }
+
+    private BigDecimal calcularTotalPedido(Pedido pedido) {
+        return detallePedidoRepository.findByPedido(pedido).stream()
+                .map(DetallePedido::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     private PedidoDTO convertToDTO(Pedido pedido) {
         PedidoDTO dto = new PedidoDTO();
         dto.setId(pedido.getId());
         dto.setMesaId(pedido.getMesa().getId());
         dto.setNumeroMesa(pedido.getMesa().getNumeroMesa());
-        dto.setFecha(pedido.getFecha());
-        dto.setEstado(pedido.getEstado());
-        dto.setTotal(pedido.calcularTotal());
 
         if (pedido.getCliente() != null) {
             dto.setClienteId(pedido.getCliente().getId());
             dto.setNombreCliente(pedido.getCliente().getNombre());
         }
 
-        if (pedido.getEmpleado() != null) {
-            dto.setEmpleadoId(pedido.getEmpleado().getId());
-            dto.setNombreEmpleado(pedido.getEmpleado().getNombre());
-        }
+        dto.setEmpleadoId(pedido.getEmpleado().getId());
+        dto.setNombreEmpleado(pedido.getEmpleado().getNombre());
+        dto.setFecha(pedido.getFecha());
+        dto.setEstado(pedido.getEstado());
+        dto.setTotal(pedido.calcularTotal());
 
-        List<DetallePedidoDTO> detallesDTO = pedido.getDetalles().stream()
-                .map(this::convertDetalleToDTO)
-                .collect(Collectors.toList());
-        dto.setDetalles(detallesDTO);
+        if (pedido.getDetalles() != null) {
+            dto.setDetalles(pedido.getDetalles().stream()
+                    .map(this::convertDetallePedidoToDTO)
+                    .collect(Collectors.toList()));
+        }
 
         return dto;
     }
 
-    private DetallePedidoDTO convertDetalleToDTO(DetallePedido detalle) {
+    private DetallePedidoDTO convertDetallePedidoToDTO(DetallePedido detalle) {
         DetallePedidoDTO dto = new DetallePedidoDTO();
         dto.setId(detalle.getId());
         dto.setPedidoId(detalle.getPedido().getId());
         dto.setProductoId(detalle.getProducto().getId());
         dto.setNombreProducto(detalle.getProducto().getNombre());
         dto.setCantidad(detalle.getCantidad());
-        dto.setPrecioUnitario(detalle.getProducto().getPrecio());
+        dto.setPrecioUnitario(detalle.getPrecioUnitario());
         dto.setSubtotal(detalle.getSubtotal());
         return dto;
     }

@@ -11,6 +11,4 @@ import java.util.List;
 public interface DetallePedidoRepository extends JpaRepository<DetallePedido, Long> {
 
     List<DetallePedido> findByPedido(Pedido pedido);
-
-    void deleteByPedido(Pedido pedido);
 }

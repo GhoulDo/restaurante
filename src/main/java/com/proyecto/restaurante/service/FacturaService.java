@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,17 +37,18 @@ public class FacturaService {
         return convertToDTO(factura);
     }
 
-    public FacturaDTO crearFacturaPorPedido(Long pedidoId, Long empleadoId) {
+    public List<FacturaDTO> findByFechaBetween(LocalDateTime inicio, LocalDateTime fin) {
+        return facturaRepository.findByFechaBetween(inicio, fin).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public FacturaDTO crearFacturaDesdePedido(Long pedidoId, Long empleadoId) {
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
 
-        if (pedido.getEstado() != Pedido.EstadoPedido.SERVIDO) {
+        if (!pedido.getEstado().equals(Pedido.EstadoPedido.SERVIDO)) {
             throw new RuntimeException("Solo se pueden facturar pedidos servidos");
-        }
-
-        // Verificar si ya existe una factura para este pedido
-        if (facturaRepository.findByPedido(pedido).isPresent()) {
-            throw new RuntimeException("Ya existe una factura para este pedido");
         }
 
         Empleado empleado = empleadoRepository.findById(empleadoId)
@@ -54,22 +56,32 @@ public class FacturaService {
 
         Factura factura = new Factura();
         factura.setPedido(pedido);
-        factura.setTotal(pedido.calcularTotal());
         factura.setEmpleado(empleado);
+        factura.setFecha(LocalDateTime.now());
+        factura.setTotal(pedido.getTotal());
 
         Factura savedFactura = facturaRepository.save(factura);
         return convertToDTO(savedFactura);
     }
 
-    public List<FacturaDTO> findByFechaBetween(LocalDateTime inicio, LocalDateTime fin) {
-        return facturaRepository.findByFechaBetween(inicio, fin).stream()
+    public BigDecimal calcularTotalVentas(LocalDateTime inicio, LocalDateTime fin) {
+        BigDecimal total = facturaRepository.calcularTotalVentasPeriodo(inicio, fin);
+        return total != null ? total : BigDecimal.ZERO;
+    }
+
+    public List<FacturaDTO> findByEmpleadoId(Long empleadoId) {
+        Empleado empleado = empleadoRepository.findById(empleadoId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+        return facturaRepository.findByEmpleado(empleado).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    public Double calcularTotalVentasPeriodo(LocalDateTime inicio, LocalDateTime fin) {
-        Double total = facturaRepository.calcularTotalVentasPeriodo(inicio, fin);
-        return total != null ? total : 0.0;
+    public void delete(Long id) {
+        if (!facturaRepository.existsById(id)) {
+            throw new RuntimeException("Factura no encontrada");
+        }
+        facturaRepository.deleteById(id);
     }
 
     private FacturaDTO convertToDTO(Factura factura) {
@@ -79,12 +91,8 @@ public class FacturaService {
         dto.setNumeroMesa(factura.getPedido().getMesa().getNumeroMesa());
         dto.setFecha(factura.getFecha());
         dto.setTotal(factura.getTotal());
-
-        if (factura.getEmpleado() != null) {
-            dto.setEmpleadoId(factura.getEmpleado().getId());
-            dto.setNombreEmpleado(factura.getEmpleado().getNombre());
-        }
-
+        dto.setEmpleadoId(factura.getEmpleado().getId());
+        dto.setNombreEmpleado(factura.getEmpleado().getNombre());
         return dto;
     }
 }

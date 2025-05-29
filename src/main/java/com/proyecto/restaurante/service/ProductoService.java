@@ -92,6 +92,12 @@ public class ProductoService {
                 .collect(Collectors.toList());
     }
 
+    public List<ProductoDTO> findByNombreContaining(String nombre) {
+        return productoRepository.findByNombreContaining(nombre).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     private ProductoDTO convertToDTO(Producto producto) {
         ProductoDTO dto = new ProductoDTO();
         dto.setId(producto.getId());

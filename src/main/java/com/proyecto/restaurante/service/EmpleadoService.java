@@ -59,20 +59,24 @@ public class EmpleadoService {
     }
 
     private EmpleadoDTO convertToDTO(Empleado empleado) {
-        return new EmpleadoDTO(
-                empleado.getId(),
-                empleado.getNombre(),
-                empleado.getRol(),
-                empleado.getTelefono(),
-                empleado.getCorreo());
+        EmpleadoDTO dto = new EmpleadoDTO();
+        dto.setId(empleado.getId());
+        dto.setNombre(empleado.getNombre());
+        dto.setRol(empleado.getRol());
+        dto.setTelefono(empleado.getTelefono());
+        dto.setCorreo(empleado.getCorreo());
+        return dto;
     }
 
     private Empleado convertToEntity(EmpleadoDTO dto) {
-        return new Empleado(
-                dto.getId(),
-                dto.getNombre(),
-                dto.getRol(),
-                dto.getTelefono(),
-                dto.getCorreo());
+        Empleado empleado = new Empleado();
+        if (dto.getId() != null) {
+            empleado.setId(dto.getId());
+        }
+        empleado.setNombre(dto.getNombre());
+        empleado.setRol(dto.getRol());
+        empleado.setTelefono(dto.getTelefono());
+        empleado.setCorreo(dto.getCorreo());
+        return empleado;
     }
 }

@@ -1,10 +1,9 @@
 package com.proyecto.restaurante.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,6 +12,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/")
+@CrossOrigin(origins = "*")
+@Slf4j
 public class HealthController {
 
     @Value("${app.base-url:http://localhost:8081}")
@@ -22,6 +23,7 @@ public class HealthController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> home() {
+        log.info("GET / - Endpoint raíz accedido");
         Map<String, Object> response = new HashMap<>();
         response.put("service", "🍽️ Sistema Restaurante API");
         response.put("status", "✅ RUNNING");
@@ -35,6 +37,7 @@ public class HealthController {
         // Información adicional
         Map<String, String> endpoints = new HashMap<>();
         endpoints.put("health", "/health");
+        endpoints.put("ping", "/ping");
         endpoints.put("categorias", "/api/categorias");
         endpoints.put("productos", "/api/productos");
         endpoints.put("mesas", "/api/mesas");
@@ -45,12 +48,14 @@ public class HealthController {
         endpoints.put("facturas", "/api/facturas");
 
         response.put("available_endpoints", endpoints);
+        response.put("cors_enabled", true);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
+        log.info("GET /health - Health check accedido");
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("service", "Sistema Restaurante");
@@ -67,10 +72,24 @@ public class HealthController {
 
     @GetMapping("/ping")
     public ResponseEntity<Map<String, String>> ping() {
+        log.info("GET /ping - Ping recibido");
         Map<String, String> response = new HashMap<>();
         response.put("message", "pong");
         response.put("timestamp", LocalDateTime.now().toString());
         response.put("status", "alive");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/test-cors")
+    public ResponseEntity<Map<String, Object>> testCors() {
+        log.info("GET /test-cors - Test CORS accedido");
+        Map<String, Object> response = new HashMap<>();
+        response.put("cors_test", "✅ CORS funcionando correctamente");
+        response.put("timestamp", LocalDateTime.now());
+        response.put("headers_allowed", "Content-Type, Authorization, *");
+        response.put("methods_allowed", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+        response.put("origins_allowed", "*");
+
         return ResponseEntity.ok(response);
     }
 }

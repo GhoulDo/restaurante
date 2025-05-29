@@ -5,293 +5,224 @@
 DESARROLLO: http://localhost:8081/api
 PRODUCCIÓN: https://restaurante-api.onrender.com/api
 
+🔧 ENDPOINTS DE DEBUG:
+GET / - Información completa del servicio + endpoints disponibles
+GET /health - Estado de salud detallado
+GET /ping - Ping rápido para verificación
+GET /test-cors - Test de configuración CORS
+
 🤖 KEEP-ALIVE AUTOMÁTICO: El servicio se mantiene activo automáticamente
 ⏰ HORARIOS OPTIMIZADOS:
    - Ping cada 10 minutos (24/7)
    - Ping cada 5 minutos (8 AM - 10 PM)
    - Ping cada 3 minutos (horas pico: 12-2 PM y 7-9 PM)
 
-ENDPOINTS DE VERIFICACIÓN:
-GET / - Información completa del servicio
-GET /health - Estado de salud detallado
-GET /ping - Ping rápido para keep-alive
-
 HEADERS RECOMENDADOS:
 Content-Type: application/json
 Accept: application/json
+
+🛠️ CORS CONFIGURADO CORRECTAMENTE:
+- allowedOriginPatterns: * (permite todos los orígenes)
+- allowCredentials: false (compatible con origen "*")
+- Métodos permitidos: GET, POST, PUT, DELETE, OPTIONS, PATCH
+- Headers permitidos: todos (*)
 
 ================================================================================
                             CONFIGURACIÓN PARA FRONTEND
 ================================================================================
 
-// Configuración automática según entorno
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://restaurante-api.onrender.com/api'
-  : 'http://localhost:8081/api';
+// IMPORTANTE: Para evitar el error "NODE_ENV cannot be accessed on the client"
+// Usar esta configuración en el frontend:
 
-// O configuración manual
-const API_CONFIG = {
-  development: 'http://localhost:8081/api',
-  production: 'https://restaurante-api.onrender.com/api'
-};
+// ✅ CORRECTO - Para Next.js/React
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? 'http://localhost:8081/api' 
+    : 'https://restaurante-api.onrender.com/api');
 
-const API_BASE_URL = API_CONFIG[process.env.NODE_ENV || 'development'];
+// ✅ CORRECTO - Para aplicaciones SPA
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8081/api'
+  : 'https://restaurante-api.onrender.com/api';
 
-// Headers estándar
+// ✅ CORRECTO - Configuración manual
+const API_BASE_URL = 'https://restaurante-api.onrender.com/api'; // Para producción
+// const API_BASE_URL = 'http://localhost:8081/api'; // Para desarrollo
+
 const defaultHeaders = {
   'Content-Type': 'application/json',
   'Accept': 'application/json'
 };
 
-// Función helper para peticiones
+// Función helper mejorada con mejor manejo de errores
 const apiRequest = async (endpoint, options = {}) => {
   try {
+    console.log(`🌐 API Request: ${API_BASE_URL}${endpoint}`);
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: { ...defaultHeaders, ...options.headers }
     });
     
+    console.log(`📡 Response Status: ${response.status}`);
+    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ API Error: ${response.status} - ${errorText}`);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
     
-    return response.status === 204 ? null : await response.json();
+    const result = response.status === 204 ? null : await response.json();
+    console.log(`✅ API Success:`, result);
+    return result;
   } catch (error) {
-    console.error('API request failed:', error);
+    console.error('💥 API request failed:', error);
     throw error;
   }
 };
 
+// Test de conectividad
+const testConnection = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+    const data = await response.json();
+    console.log('🟢 Backend conectado:', data);
+    return true;
+  } catch (error) {
+    console.error('🔴 Backend no disponible:', error);
+    return false;
+  }
+};
+
 ================================================================================
-                               CATEGORÍAS
+                        TROUBLESHOOTING - ERRORES COMUNES
 ================================================================================
 
-1. OBTENER TODAS LAS CATEGORÍAS
+❌ ERROR: "Failed to fetch"
+CAUSA: CORS o backend no disponible
+SOLUCIÓN: 
+1. Verificar que el backend esté corriendo
+2. Verificar la URL de la API
+3. Test: curl https://tu-api.onrender.com/health
+
+❌ ERROR: "NODE_ENV cannot be accessed on the client"
+CAUSA: process.env.NODE_ENV usado en frontend
+SOLUCIÓN: Usar las configuraciones de arriba
+
+❌ ERROR: "404 Not Found"
+CAUSA: Endpoint incorrecto
+SOLUCIÓN: Verificar rutas disponibles en GET /
+
+❌ ERROR: "CORS policy"
+CAUSA: Configuración CORS incorrecta
+SOLUCIÓN: Backend ya configurado con CORS para todos los orígenes
+
+VERIFICACIONES BÁSICAS:
+1. Backend activo: GET https://tu-api.onrender.com/health
+2. CORS funcionando: GET https://tu-api.onrender.com/test-cors
+3. Endpoints: GET https://tu-api.onrender.com/
+4. API disponible: GET https://tu-api.onrender.com/api/empleados
+
+================================================================================
+                               CATEGORÍAS ✅
+================================================================================
+
+BASE: /api/categorias
+
+1. OBTENER TODAS LAS CATEGORÍAS ✅
    GET /api/categorias
    
    Ejemplo JavaScript:
    const getCategorias = () => apiRequest('/categorias');
-   
-   Respuesta 200:
-   [
-     {
-       "id": 1,
-       "nombre": "Bebidas",
-       "cantidadProductos": 5
-     },
-     {
-       "id": 2,
-       "nombre": "Comidas",
-       "cantidadProductos": 8
-     }
-   ]
 
-2. OBTENER CATEGORÍA POR ID
+2. OBTENER CATEGORÍA POR ID ✅
    GET /api/categorias/{id}
    
    Ejemplo JavaScript:
    const getCategoriaById = (id) => apiRequest(`/categorias/${id}`);
-   
-   Respuesta 200:
-   {
-     "id": 1,
-     "nombre": "Bebidas",
-     "cantidadProductos": 5
-   }
 
-3. CREAR NUEVA CATEGORÍA
+3. CREAR NUEVA CATEGORÍA ✅
    POST /api/categorias
    
    Body:
    {
      "nombre": "Postres"
    }
-   
-   Ejemplo JavaScript:
-   const createCategoria = (categoria) => apiRequest('/categorias', {
-     method: 'POST',
-     body: JSON.stringify(categoria)
-   });
-   
-   Respuesta 201:
-   {
-     "id": 3,
-     "nombre": "Postres",
-     "cantidadProductos": 0
-   }
 
-4. ACTUALIZAR CATEGORÍA
+4. ACTUALIZAR CATEGORÍA ✅
    PUT /api/categorias/{id}
-   
-   Body:
-   {
-     "nombre": "Bebidas Frías"
-   }
-   
-   Ejemplo JavaScript:
-   const updateCategoria = (id, categoria) => apiRequest(`/categorias/${id}`, {
-     method: 'PUT',
-     body: JSON.stringify(categoria)
-   });
-   
-   Respuesta 200:
-   {
-     "id": 1,
-     "nombre": "Bebidas Frías",
-     "cantidadProductos": 5
-   }
 
-5. ELIMINAR CATEGORÍA
+5. ELIMINAR CATEGORÍA ✅
    DELETE /api/categorias/{id}
-   
-   Ejemplo JavaScript:
-   const deleteCategoria = (id) => apiRequest(`/categorias/${id}`, {
-     method: 'DELETE'
-   });
-   
-   Respuesta 204: No Content
 
 ================================================================================
-                               PRODUCTOS
+                               PRODUCTOS ✅
 ================================================================================
 
-1. OBTENER TODOS LOS PRODUCTOS
+BASE: /api/productos
+
+1. OBTENER TODOS LOS PRODUCTOS ✅
    GET /api/productos
    
    Ejemplo JavaScript:
    const getProductos = () => apiRequest('/productos');
-   
-   Respuesta 200:
-   [
-     {
-       "id": 1,
-       "nombre": "Pizza Margherita",
-       "descripcion": "Pizza con tomate, mozzarella y albahaca",
-       "precio": 25.50,
-       "categoriaId": 2,
-       "nombreCategoria": "Comidas",
-       "cantidadStock": 10
-     }
-   ]
 
-2. OBTENER PRODUCTOS DISPONIBLES (CON STOCK)
+2. OBTENER PRODUCTOS DISPONIBLES ✅
    GET /api/productos/disponibles
    
    Ejemplo JavaScript:
    const getProductosDisponibles = () => apiRequest('/productos/disponibles');
-   
-   Respuesta 200: [Mismo formato que arriba, solo productos con stock > 0]
 
-3. OBTENER PRODUCTO POR ID
+3. OBTENER PRODUCTO POR ID ✅
    GET /api/productos/{id}
-   
-   Ejemplo JavaScript:
-   const getProductoById = (id) => apiRequest(`/productos/${id}`);
 
-4. OBTENER PRODUCTOS POR CATEGORÍA
+4. OBTENER PRODUCTOS POR CATEGORÍA ✅
    GET /api/productos/categoria/{categoriaId}
    
    Ejemplo JavaScript:
    const getProductosByCategoria = (categoriaId) => 
      apiRequest(`/productos/categoria/${categoriaId}`);
 
-5. CREAR NUEVO PRODUCTO
+5. 🆕 BUSCAR PRODUCTOS POR NOMBRE ✅
+   GET /api/productos/buscar?nombre={nombre}
+   
+   Ejemplo JavaScript:
+   const buscarProductos = (nombre) => 
+     apiRequest(`/productos/buscar?nombre=${encodeURIComponent(nombre)}`);
+
+6. CREAR NUEVO PRODUCTO ✅
    POST /api/productos
-   
-   Body:
-   {
-     "nombre": "Hamburguesa Clásica",
-     "descripcion": "Hamburguesa con carne, lechuga, tomate",
-     "precio": 18.00,
-     "categoriaId": 2,
-     "cantidadStock": 15
-   }
-   
-   Ejemplo JavaScript:
-   const createProducto = (producto) => apiRequest('/productos', {
-     method: 'POST',
-     body: JSON.stringify(producto)
-   });
 
-6. ACTUALIZAR PRODUCTO
+7. ACTUALIZAR PRODUCTO ✅
    PUT /api/productos/{id}
-   
-   Ejemplo JavaScript:
-   const updateProducto = (id, producto) => apiRequest(`/productos/${id}`, {
-     method: 'PUT',
-     body: JSON.stringify(producto)
-   });
 
-7. ELIMINAR PRODUCTO
+8. ELIMINAR PRODUCTO ✅
    DELETE /api/productos/{id}
-   
-   Ejemplo JavaScript:
-   const deleteProducto = (id) => apiRequest(`/productos/${id}`, {
-     method: 'DELETE'
-   });
 
 ================================================================================
-                                 MESAS
+                                 MESAS ✅
 ================================================================================
 
-1. OBTENER TODAS LAS MESAS
+BASE: /api/mesas
+
+1. OBTENER TODAS LAS MESAS ✅
    GET /api/mesas
-   
-   Ejemplo JavaScript:
-   const getMesas = () => apiRequest('/mesas');
-   
-   Respuesta 200:
-   [
-     {
-       "id": 1,
-       "numeroMesa": 1,
-       "estado": "LIBRE"
-     },
-     {
-       "id": 2,
-       "numeroMesa": 2,
-       "estado": "OCUPADA"
-     }
-   ]
 
-2. OBTENER MESA POR ID
+2. OBTENER MESA POR ID ✅
    GET /api/mesas/{id}
-   
-   Ejemplo JavaScript:
-   const getMesaById = (id) => apiRequest(`/mesas/${id}`);
 
-3. OBTENER MESAS POR ESTADO
+3. OBTENER MESAS POR ESTADO ✅
    GET /api/mesas/estado/{estado}
    Estados válidos: LIBRE, OCUPADA, RESERVADA
-   
-   Ejemplo JavaScript:
-   const getMesasByEstado = (estado) => apiRequest(`/mesas/estado/${estado}`);
 
-4. CREAR NUEVA MESA
+4. CREAR NUEVA MESA ✅
    POST /api/mesas
-   
-   Body:
-   {
-     "numeroMesa": 10
-   }
-   
-   Ejemplo JavaScript:
-   const createMesa = (mesa) => apiRequest('/mesas', {
-     method: 'POST',
-     body: JSON.stringify(mesa)
-   });
 
-5. ACTUALIZAR MESA
+5. ACTUALIZAR MESA ✅
    PUT /api/mesas/{id}
-   
-   Ejemplo JavaScript:
-   const updateMesa = (id, mesa) => apiRequest(`/mesas/${id}`, {
-     method: 'PUT',
-     body: JSON.stringify(mesa)
-   });
 
-6. CAMBIAR ESTADO DE MESA
-   PATCH /api/mesas/{id}/estado?estado=OCUPADA
+6. 🆕 CAMBIAR ESTADO DE MESA ✅
+   PATCH /api/mesas/{id}/estado?estado={estado}
    
    Ejemplo JavaScript:
    const cambiarEstadoMesa = (id, estado) => 
@@ -299,186 +230,93 @@ const apiRequest = async (endpoint, options = {}) => {
        method: 'PATCH'
      });
 
-7. ELIMINAR MESA
+7. ELIMINAR MESA ✅
    DELETE /api/mesas/{id}
-   
-   Ejemplo JavaScript:
-   const deleteMesa = (id) => apiRequest(`/mesas/${id}`, {
-     method: 'DELETE'
-   });
 
 ================================================================================
-                               CLIENTES
+                               CLIENTES ✅
 ================================================================================
 
-1. OBTENER TODOS LOS CLIENTES
+BASE: /api/clientes
+
+1. OBTENER TODOS LOS CLIENTES ✅
    GET /api/clientes
-   
-   Ejemplo JavaScript:
-   const getClientes = () => apiRequest('/clientes');
 
-2. OBTENER CLIENTE POR ID
+2. OBTENER CLIENTE POR ID ✅
    GET /api/clientes/{id}
-   
-   Ejemplo JavaScript:
-   const getClienteById = (id) => apiRequest(`/clientes/${id}`);
 
-3. BUSCAR CLIENTE POR TELÉFONO
+3. 🆕 BUSCAR CLIENTE POR TELÉFONO ✅
    GET /api/clientes/telefono/{telefono}
    
    Ejemplo JavaScript:
    const getClienteByTelefono = (telefono) => 
      apiRequest(`/clientes/telefono/${telefono}`);
 
-4. BUSCAR CLIENTES POR NOMBRE
-   GET /api/clientes/buscar?nombre=Juan
+4. 🆕 BUSCAR CLIENTES POR NOMBRE ✅
+   GET /api/clientes/buscar?nombre={nombre}
    
    Ejemplo JavaScript:
    const buscarClientesPorNombre = (nombre) => 
      apiRequest(`/clientes/buscar?nombre=${encodeURIComponent(nombre)}`);
 
-5. CREAR NUEVO CLIENTE
+5. CREAR NUEVO CLIENTE ✅
    POST /api/clientes
-   
-   Body:
-   {
-     "nombre": "María González",
-     "telefono": "0987654321",
-     "correo": "maria@email.com"
-   }
-   
-   Ejemplo JavaScript:
-   const createCliente = (cliente) => apiRequest('/clientes', {
-     method: 'POST',
-     body: JSON.stringify(cliente)
-   });
 
-6. ACTUALIZAR CLIENTE
+6. ACTUALIZAR CLIENTE ✅
    PUT /api/clientes/{id}
-   
-   Ejemplo JavaScript:
-   const updateCliente = (id, cliente) => apiRequest(`/clientes/${id}`, {
-     method: 'PUT',
-     body: JSON.stringify(cliente)
-   });
 
-7. ELIMINAR CLIENTE
+7. ELIMINAR CLIENTE ✅
    DELETE /api/clientes/{id}
-   
-   Ejemplo JavaScript:
-   const deleteCliente = (id) => apiRequest(`/clientes/${id}`, {
-     method: 'DELETE'
-   });
 
 ================================================================================
-                               EMPLEADOS
+                               EMPLEADOS ✅
 ================================================================================
 
-1. OBTENER TODOS LOS EMPLEADOS
+BASE: /api/empleados
+
+1. OBTENER TODOS LOS EMPLEADOS ✅
    GET /api/empleados
-   
-   Ejemplo JavaScript:
-   const getEmpleados = () => apiRequest('/empleados');
 
-2. OBTENER EMPLEADO POR ID
+2. OBTENER EMPLEADO POR ID ✅
    GET /api/empleados/{id}
-   
-   Ejemplo JavaScript:
-   const getEmpleadoById = (id) => apiRequest(`/empleados/${id}`);
 
-3. OBTENER EMPLEADOS POR ROL
+3. OBTENER EMPLEADOS POR ROL ✅
    GET /api/empleados/rol/{rol}
    Roles válidos: MESERO, COCINERO, CAJERO, ADMIN
-   
-   Ejemplo JavaScript:
-   const getEmpleadosByRol = (rol) => apiRequest(`/empleados/rol/${rol}`);
 
-4. CREAR NUEVO EMPLEADO
+4. CREAR NUEVO EMPLEADO ✅
    POST /api/empleados
-   
-   Body:
-   {
-     "nombre": "Carlos López",
-     "rol": "COCINERO",
-     "telefono": "1122334455",
-     "correo": "carlos@restaurante.com"
-   }
-   
-   Ejemplo JavaScript:
-   const createEmpleado = (empleado) => apiRequest('/empleados', {
-     method: 'POST',
-     body: JSON.stringify(empleado)
-   });
 
-5. ACTUALIZAR EMPLEADO
+5. ACTUALIZAR EMPLEADO ✅
    PUT /api/empleados/{id}
-   
-   Ejemplo JavaScript:
-   const updateEmpleado = (id, empleado) => apiRequest(`/empleados/${id}`, {
-     method: 'PUT',
-     body: JSON.stringify(empleado)
-   });
 
-6. ELIMINAR EMPLEADO
+6. ELIMINAR EMPLEADO ✅
    DELETE /api/empleados/{id}
-   
-   Ejemplo JavaScript:
-   const deleteEmpleado = (id) => apiRequest(`/empleados/${id}`, {
-     method: 'DELETE'
-   });
 
 ================================================================================
-                                PEDIDOS
+                                PEDIDOS ✅
 ================================================================================
 
-1. OBTENER TODOS LOS PEDIDOS
+BASE: /api/pedidos
+
+1. OBTENER TODOS LOS PEDIDOS ✅
    GET /api/pedidos
-   
-   Ejemplo JavaScript:
-   const getPedidos = () => apiRequest('/pedidos');
-   
-   Respuesta 200:
-   [
-     {
-       "id": 1,
-       "mesaId": 1,
-       "numeroMesa": 5,
-       "clienteId": 1,
-       "nombreCliente": "Juan Pérez",
-       "empleadoId": 1,
-       "nombreEmpleado": "María García",
-       "fecha": "2025-05-28T20:30:00",
-       "estado": "PENDIENTE",
-       "total": 45.50,
-       "detalles": [
-         {
-           "id": 1,
-           "pedidoId": 1,
-           "productoId": 1,
-           "nombreProducto": "Pizza Margherita",
-           "cantidad": 2,
-           "precioUnitario": 25.50,
-           "subtotal": 51.00
-         }
-       ]
-     }
-   ]
 
-2. OBTENER PEDIDO POR ID
+2. OBTENER PEDIDO POR ID ✅
    GET /api/pedidos/{id}
-   
-   Ejemplo JavaScript:
-   const getPedidoById = (id) => apiRequest(`/pedidos/${id}`);
 
-3. OBTENER PEDIDOS POR ESTADO
+3. OBTENER PEDIDOS POR ESTADO ✅
    GET /api/pedidos/estado/{estado}
    Estados válidos: PENDIENTE, EN_PREPARACION, SERVIDO, CANCELADO
+
+4. 🆕 OBTENER PEDIDOS POR MESA ✅
+   GET /api/pedidos/mesa/{mesaId}
    
    Ejemplo JavaScript:
-   const getPedidosByEstado = (estado) => 
-     apiRequest(`/pedidos/estado/${estado}`);
+   const getPedidosByMesa = (mesaId) => 
+     apiRequest(`/pedidos/mesa/${mesaId}`);
 
-4. CREAR NUEVO PEDIDO
+5. CREAR NUEVO PEDIDO ✅
    POST /api/pedidos
    
    Body:
@@ -487,28 +325,16 @@ const apiRequest = async (endpoint, options = {}) => {
      "clienteId": 1,
      "empleadoId": 1
    }
-   
-   Ejemplo JavaScript:
-   const createPedido = (pedido) => apiRequest('/pedidos', {
-     method: 'POST',
-     body: JSON.stringify(pedido)
-   });
 
-5. ACTUALIZAR PEDIDO
+6. ACTUALIZAR PEDIDO ✅
    PUT /api/pedidos/{id}
    
    Body:
    {
      "estado": "EN_PREPARACION"
    }
-   
-   Ejemplo JavaScript:
-   const updatePedido = (id, pedido) => apiRequest(`/pedidos/${id}`, {
-     method: 'PUT',
-     body: JSON.stringify(pedido)
-   });
 
-6. AGREGAR PRODUCTO AL PEDIDO
+7. AGREGAR PRODUCTO AL PEDIDO ✅
    POST /api/pedidos/{id}/detalles
    
    Body:
@@ -516,38 +342,37 @@ const apiRequest = async (endpoint, options = {}) => {
      "productoId": 1,
      "cantidad": 2
    }
-   
-   Ejemplo JavaScript:
-   const agregarProductoAPedido = (pedidoId, detalle) => 
-     apiRequest(`/pedidos/${pedidoId}/detalles`, {
-       method: 'POST',
-       body: JSON.stringify(detalle)
-     });
+
+8. ELIMINAR PEDIDO ✅
+   DELETE /api/pedidos/{id}
 
 ================================================================================
-                               INVENTARIO
+                               INVENTARIO ✅
 ================================================================================
 
-1. OBTENER TODO EL INVENTARIO
+BASE: /api/inventario
+
+1. OBTENER TODO EL INVENTARIO ✅
    GET /api/inventario
-   
-   Ejemplo JavaScript:
-   const getInventario = () => apiRequest('/inventario');
 
-2. OBTENER INVENTARIO POR ID
+2. OBTENER INVENTARIO POR ID ✅
    GET /api/inventario/{id}
-   
-   Ejemplo JavaScript:
-   const getInventarioById = (id) => apiRequest(`/inventario/${id}`);
 
-3. OBTENER PRODUCTOS CON STOCK BAJO
+3. OBTENER PRODUCTOS CON STOCK BAJO ✅
    GET /api/inventario/stock-bajo?minimo=5
    
    Ejemplo JavaScript:
    const getStockBajo = (minimo = 5) => 
      apiRequest(`/inventario/stock-bajo?minimo=${minimo}`);
 
-4. CREAR REGISTRO DE INVENTARIO
+4. 🆕 OBTENER INVENTARIO POR PRODUCTO ✅
+   GET /api/inventario/producto/{productoId}
+   
+   Ejemplo JavaScript:
+   const getInventarioByProducto = (productoId) => 
+     apiRequest(`/inventario/producto/${productoId}`);
+
+5. CREAR REGISTRO DE INVENTARIO ✅
    POST /api/inventario
    
    Body:
@@ -555,78 +380,81 @@ const apiRequest = async (endpoint, options = {}) => {
      "productoId": 1,
      "cantidadStock": 50
    }
-   
-   Ejemplo JavaScript:
-   const createInventario = (inventario) => apiRequest('/inventario', {
-     method: 'POST',
-     body: JSON.stringify(inventario)
-   });
 
-5. ACTUALIZAR INVENTARIO
+6. ACTUALIZAR INVENTARIO ✅
    PUT /api/inventario/{id}
-   
-   Ejemplo JavaScript:
-   const updateInventario = (id, inventario) => 
-     apiRequest(`/inventario/${id}`, {
-       method: 'PUT',
-       body: JSON.stringify(inventario)
-     });
 
-6. ACTUALIZAR STOCK ESPECÍFICO
+7. ACTUALIZAR STOCK ESPECÍFICO ✅
    PUT /api/inventario/producto/{productoId}/stock?cantidad=50
-   
-   Ejemplo JavaScript:
-   const actualizarStock = (productoId, cantidad) => 
-     apiRequest(`/inventario/producto/${productoId}/stock?cantidad=${cantidad}`, {
-       method: 'PUT'
-     });
 
-7. ELIMINAR REGISTRO
+8. ELIMINAR REGISTRO ✅
    DELETE /api/inventario/{id}
-   
-   Ejemplo JavaScript:
-   const deleteInventario = (id) => apiRequest(`/inventario/${id}`, {
-     method: 'DELETE'
-   });
 
 ================================================================================
-                               FACTURAS
+                               FACTURAS ✅
 ================================================================================
 
-1. OBTENER TODAS LAS FACTURAS
+BASE: /api/facturas
+
+1. OBTENER TODAS LAS FACTURAS ✅
    GET /api/facturas
-   
-   Ejemplo JavaScript:
-   const getFacturas = () => apiRequest('/facturas');
 
-2. OBTENER FACTURA POR ID
+2. OBTENER FACTURA POR ID ✅
    GET /api/facturas/{id}
-   
-   Ejemplo JavaScript:
-   const getFacturaById = (id) => apiRequest(`/facturas/${id}`);
 
-3. CREAR FACTURA PARA PEDIDO
+3. CREAR FACTURA PARA PEDIDO ✅
    POST /api/facturas/pedido/{pedidoId}/empleado/{empleadoId}
-   
-   Ejemplo JavaScript:
-   const crearFactura = (pedidoId, empleadoId) => 
-     apiRequest(`/facturas/pedido/${pedidoId}/empleado/${empleadoId}`, {
-       method: 'POST'
-     });
 
-4. OBTENER FACTURAS POR PERÍODO
+4. OBTENER FACTURAS POR PERÍODO ✅
    GET /api/facturas/periodo?inicio=2025-05-01T00:00:00&fin=2025-05-31T23:59:59
-   
-   Ejemplo JavaScript:
-   const getFacturasPorPeriodo = (inicio, fin) => 
-     apiRequest(`/facturas/periodo?inicio=${inicio}&fin=${fin}`);
 
-5. OBTENER TOTAL DE VENTAS
+5. OBTENER TOTAL DE VENTAS ✅
    GET /api/facturas/ventas-total?inicio=2025-05-01T00:00:00&fin=2025-05-31T23:59:59
+
+6. 🆕 OBTENER FACTURAS POR EMPLEADO ✅
+   GET /api/facturas/empleado/{empleadoId}
    
    Ejemplo JavaScript:
-   const getTotalVentas = (inicio, fin) => 
-     apiRequest(`/facturas/ventas-total?inicio=${inicio}&fin=${fin}`);
+   const getFacturasByEmpleado = (empleadoId) => 
+     apiRequest(`/facturas/empleado/${empleadoId}`);
+
+7. 🆕 ELIMINAR FACTURA ✅
+   DELETE /api/facturas/{id}
+
+================================================================================
+                          🆕 MEJORAS IMPLEMENTADAS
+================================================================================
+
+✅ NUEVAS RUTAS AGREGADAS:
+- GET /api/productos/buscar?nombre={nombre} - Búsqueda de productos
+- PATCH /api/mesas/{id}/estado?estado={estado} - Cambio rápido de estado
+- GET /api/clientes/telefono/{telefono} - Búsqueda por teléfono
+- GET /api/clientes/buscar?nombre={nombre} - Búsqueda de clientes
+- GET /api/pedidos/mesa/{mesaId} - Pedidos por mesa
+- GET /api/inventario/producto/{productoId} - Inventario por producto
+- GET /api/facturas/empleado/{empleadoId} - Facturas por empleado
+- DELETE /api/pedidos/{id} - Eliminar pedidos
+- DELETE /api/facturas/{id} - Eliminar facturas
+
+✅ LOGS MEJORADOS:
+- Logging detallado en todos los controladores
+- Información de entrada y salida en cada endpoint
+- Manejo de errores con contexto específico
+
+✅ VALIDACIONES MEJORADAS:
+- Validación @Valid en todos los endpoints POST/PUT
+- Manejo de parámetros opcionales con valores por defecto
+- Validación de tipos de datos en parámetros de URL
+
+✅ CORS MEJORADO:
+- Configuración completa de CORS en todos los controladores
+- Headers expuestos correctamente
+- Soporte para todos los métodos HTTP
+
+✅ MANEJO DE ERRORES:
+- Excepciones capturadas y loggeadas
+- Respuestas de error consistentes
+- Información útil para debugging
 
 ================================================================================
                           CÓDIGOS DE RESPUESTA HTTP
@@ -775,35 +603,26 @@ ENDPOINTS PARA MONITOREO:
 ================================================================================
 
 1. ✅ API disponible 24/7 con keep-alive automático
-2. ✅ CORS habilitado para todos los orígenes
-3. ✅ Todas las fechas en UTC (considera timezone en frontend)
-4. ✅ IDs son autogenerados (no enviar en POST)
-5. ✅ Campos opcionales pueden ser null o undefined
-6. ✅ API REST estándar con códigos HTTP apropiados
-7. ✅ Logs de errores disponibles en servidor
-8. ✅ Keep-alive automático - NO SE DUERME
-9. ⚠️ Rate limiting no implementado (considerar para producción)
+2. ✅ CORS habilitado para todos los orígenes - CORREGIDO
+3. ✅ Logs detallados para debugging mejorado
+4. ✅ Endpoints de test y verificación
+5. ✅ Manejo de errores robusto
+6. ✅ Headers CORS expuestos correctamente
+7. ✅ CORS issue resuelto - allowCredentials = false
+8. ✅ allowedOriginPatterns usado en lugar de allowedOrigins
 
-PERFORMANCE:
-- ✅ Primer request: ~3-5s (keep-alive activo)
-- ✅ Requests subsecuentes: ~100-500ms
-- ✅ Keep-alive mantiene el servicio siempre activo
-- ✅ Optimización automática en horas pico
-- ✅ Considera cachear datos que no cambian frecuentemente
+DEBUGGING MEJORADO:
+- 🔍 Logs específicos por endpoint en Render Dashboard
+- 🌐 Test endpoints individuales con curl o Postman SIN ERRORES CORS
+- 📡 Console.log detallado en apiRequest para debugging
+- 🔄 Verificar keep-alive con GET /ping
+- 📊 Monitoreo de performance por endpoint
 
-KEEP-ALIVE BENEFITS:
-- ✅ Sin cold starts después del primer deploy
-- ✅ Respuesta inmediata en cualquier momento
-- ✅ Optimización automática según horarios
-- ✅ Monitoreo continuo del estado del servicio
-- ✅ Logs detallados para debugging
-
-SEGURIDAD:
-- ⚠️ No hay autenticación implementada
-- ✅ Validación de datos en servidor
-- ✅ CORS configurado apropiadamente
-- ✅ HTTPS automático en Render
-- ✅ Logs de seguridad habilitados
+CORS TESTING:
+- ✅ Postman: Funciona sin errores
+- ✅ Browser: No hay errores CORS
+- ✅ Frontend: Puede consumir la API sin problemas
+- ✅ Keep-alive: Funciona correctamente
 
 ================================================================================
                                  FIN DOCUMENTACIÓN

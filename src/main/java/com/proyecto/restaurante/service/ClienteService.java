@@ -63,19 +63,29 @@ public class ClienteService {
                 .collect(Collectors.toList());
     }
 
+    public List<ClienteDTO> findByNombreContaining(String nombre) {
+        return clienteRepository.findByNombreContainingIgnoreCase(nombre).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     private ClienteDTO convertToDTO(Cliente cliente) {
-        return new ClienteDTO(
-                cliente.getId(),
-                cliente.getNombre(),
-                cliente.getTelefono(),
-                cliente.getCorreo());
+        ClienteDTO dto = new ClienteDTO();
+        dto.setId(cliente.getId());
+        dto.setNombre(cliente.getNombre());
+        dto.setTelefono(cliente.getTelefono());
+        dto.setCorreo(cliente.getCorreo());
+        return dto;
     }
 
     private Cliente convertToEntity(ClienteDTO dto) {
-        return new Cliente(
-                dto.getId(),
-                dto.getNombre(),
-                dto.getTelefono(),
-                dto.getCorreo());
+        Cliente cliente = new Cliente();
+        if (dto.getId() != null) {
+            cliente.setId(dto.getId());
+        }
+        cliente.setNombre(dto.getNombre());
+        cliente.setTelefono(dto.getTelefono());
+        cliente.setCorreo(dto.getCorreo());
+        return cliente;
     }
 }

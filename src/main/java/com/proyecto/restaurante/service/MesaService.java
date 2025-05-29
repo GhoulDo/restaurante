@@ -73,16 +73,20 @@ public class MesaService {
     }
 
     private MesaDTO convertToDTO(Mesa mesa) {
-        return new MesaDTO(
-                mesa.getId(),
-                mesa.getNumeroMesa(),
-                mesa.getEstado());
+        MesaDTO dto = new MesaDTO();
+        dto.setId(mesa.getId());
+        dto.setNumeroMesa(mesa.getNumeroMesa());
+        dto.setEstado(mesa.getEstado());
+        return dto;
     }
 
     private Mesa convertToEntity(MesaDTO dto) {
-        return new Mesa(
-                dto.getId(),
-                dto.getNumeroMesa(),
-                dto.getEstado() != null ? dto.getEstado() : Mesa.EstadoMesa.LIBRE);
+        Mesa mesa = new Mesa();
+        if (dto.getId() != null) {
+            mesa.setId(dto.getId());
+        }
+        mesa.setNumeroMesa(dto.getNumeroMesa());
+        mesa.setEstado(dto.getEstado() != null ? dto.getEstado() : Mesa.EstadoMesa.LIBRE);
+        return mesa;
     }
 }

@@ -1,48 +1,39 @@
 package com.proyecto.restaurante.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "detallepedido")
+@Table(name = "detalle_pedidos")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class DetallePedido {
+@EqualsAndHashCode(callSuper = false)
+public class DetallePedido extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotNull(message = "El pedido es obligatorio")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_pedido", nullable = false)
+    @JoinColumn(name = "pedido_id", nullable = false)
     private Pedido pedido;
 
-    @NotNull(message = "El producto es obligatorio")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_producto", nullable = false)
+    @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    @NotNull(message = "La cantidad es obligatoria")
-    @Min(value = 1, message = "La cantidad debe ser mayor a 0")
     @Column(nullable = false)
     private Integer cantidad;
 
-    @Column(precision = 10, scale = 2)
+    @Column(name = "precio_unitario", nullable = false, precision = 10, scale = 2)
+    private BigDecimal precioUnitario;
+
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 
     @PrePersist
     @PreUpdate
     public void calcularSubtotal() {
-        if (cantidad != null && producto != null && producto.getPrecio() != null) {
-            this.subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(cantidad));
+        if (this.cantidad != null && this.precioUnitario != null) {
+            this.subtotal = this.precioUnitario.multiply(BigDecimal.valueOf(this.cantidad));
         }
     }
 }
