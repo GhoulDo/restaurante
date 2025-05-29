@@ -34,12 +34,17 @@ git push origin main
 
 ### 3. Configurar Base de Datos
 
-La base de datos PostgreSQL ya está configurada en Render:
-- Host: `dpg-d0rqqv49c44c73cgaftg-a.virginia-postgres.render.com`
+La base de datos PostgreSQL actualizada en Render:
+- Host: `dpg-d0seuk2li9vc73cu8t9g-a.virginia-postgres.render.com`
 - Puerto: `5432`
-- Base de datos: `restaurante_l47b`
+- Base de datos: `restaurante_czko`
 - Usuario: `admin_restaurante`
-- Contraseña: `n0LXduY4klOGF8Tt3eBHTBg5EfKE8lYl`
+- Contraseña: `qwrL26hB1eqUcefDZo8vilqGhWAhn0hX`
+
+**URL Externa de Conexión:**
+```
+postgresql://admin_restaurante:qwrL26hB1eqUcefDZo8vilqGhWAhn0hX@dpg-d0seuk2li9vc73cu8t9g-a.virginia-postgres.render.com/restaurante_czko
+```
 
 ### 4. Verificar Despliegue
 

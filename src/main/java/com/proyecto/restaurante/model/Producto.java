@@ -20,10 +20,17 @@ public class Producto extends BaseEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
 
+    @Column(name = "disponible")
+    private Boolean disponible = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
     @OneToOne(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Inventario inventario;
+
+    public Boolean isDisponible() {
+        return disponible != null ? disponible : true;
+    }
 }

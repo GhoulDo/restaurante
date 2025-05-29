@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 @Entity
 @Table(name = "empleados")
 @Data
@@ -20,6 +22,12 @@ public class Empleado extends BaseEntity {
     private String telefono;
 
     private String correo;
+
+    @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Pedido> pedidos;
+
+    @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Factura> facturas;
 
     public enum RolEmpleado {
         ADMIN, CAJERO, MESERO, COCINERO

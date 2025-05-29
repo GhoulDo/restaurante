@@ -27,4 +27,15 @@ public class Inventario extends BaseEntity {
     private void updateFechaActualizacion() {
         fechaActualizacion = LocalDateTime.now();
     }
+
+    // Constructor vacío
+    public Inventario() {
+        this.cantidadStock = 0;
+    }
+
+    // Constructor con producto y stock
+    public Inventario(Producto producto, Integer cantidadStock) {
+        this.producto = producto;
+        this.cantidadStock = cantidadStock;
+    }
 }

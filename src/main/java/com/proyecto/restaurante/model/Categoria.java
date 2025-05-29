@@ -17,14 +17,10 @@ public class Categoria extends BaseEntity {
     private String nombre;
 
     @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Producto> productos;
+    private List<Producto> productos = new ArrayList<>();
 
     public int getCantidadProductos() {
-        // Verificación más robusta para evitar NullPointerException
-        if (productos == null) {
-            return 0;
-        }
-        return productos.size();
+        return productos != null ? productos.size() : 0;
     }
 
     // Método para inicializar la lista si es null
