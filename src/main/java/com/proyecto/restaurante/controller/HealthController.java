@@ -119,15 +119,13 @@ public class HealthController {
 
         response.put("environment_variables", envVars);
         response.put("system_properties", Map.of(
-            "java.version", System.getProperty("java.version"),
-            "os.name", System.getProperty("os.name"),
-            "user.timezone", System.getProperty("user.timezone")
-        ));
+                "java.version", System.getProperty("java.version"),
+                "os.name", System.getProperty("os.name"),
+                "user.timezone", System.getProperty("user.timezone")));
         response.put("runtime_info", Map.of(
-            "max_memory", Runtime.getRuntime().maxMemory() / 1024 / 1024 + " MB",
-            "total_memory", Runtime.getRuntime().totalMemory() / 1024 / 1024 + " MB",
-            "free_memory", Runtime.getRuntime().freeMemory() / 1024 / 1024 + " MB"
-        ));
+                "max_memory", Runtime.getRuntime().maxMemory() / 1024 / 1024 + " MB",
+                "total_memory", Runtime.getRuntime().totalMemory() / 1024 / 1024 + " MB",
+                "free_memory", Runtime.getRuntime().freeMemory() / 1024 / 1024 + " MB"));
 
         return ResponseEntity.ok(response);
     }
