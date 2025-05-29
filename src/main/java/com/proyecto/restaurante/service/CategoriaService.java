@@ -4,6 +4,7 @@ import com.proyecto.restaurante.dto.CategoriaDTO;
 import com.proyecto.restaurante.model.Categoria;
 import com.proyecto.restaurante.repository.CategoriaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
@@ -30,10 +32,14 @@ public class CategoriaService {
     }
 
     public CategoriaDTO save(CategoriaDTO categoriaDTO) {
+        // Verificar si ya existe una categoría con ese nombre
         if (categoriaRepository.existsByNombre(categoriaDTO.getNombre())) {
             throw new RuntimeException("Ya existe una categoría con ese nombre");
         }
-        Categoria categoria = convertToEntity(categoriaDTO);
+
+        Categoria categoria = new Categoria();
+        categoria.setNombre(categoriaDTO.getNombre());
+
         Categoria savedCategoria = categoriaRepository.save(categoria);
         return convertToDTO(savedCategoria);
     }
@@ -42,12 +48,14 @@ public class CategoriaService {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
 
-        if (!categoria.getNombre().equals(categoriaDTO.getNombre()) &&
-                categoriaRepository.existsByNombre(categoriaDTO.getNombre())) {
+        // Verificar si ya existe otra categoría con ese nombre
+        if (categoriaRepository.existsByNombre(categoriaDTO.getNombre()) &&
+                !categoria.getNombre().equals(categoriaDTO.getNombre())) {
             throw new RuntimeException("Ya existe una categoría con ese nombre");
         }
 
         categoria.setNombre(categoriaDTO.getNombre());
+
         Categoria updatedCategoria = categoriaRepository.save(categoria);
         return convertToDTO(updatedCategoria);
     }
@@ -56,7 +64,7 @@ public class CategoriaService {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
 
-        if (!categoria.getProductos().isEmpty()) {
+        if (categoria.getCantidadProductos() > 0) {
             throw new RuntimeException("No se puede eliminar una categoría que tiene productos asociados");
         }
 
@@ -64,16 +72,18 @@ public class CategoriaService {
     }
 
     private CategoriaDTO convertToDTO(Categoria categoria) {
-        return new CategoriaDTO(
-                categoria.getId(),
-                categoria.getNombre(),
-                categoria.getProductos().size());
-    }
+        CategoriaDTO dto = new CategoriaDTO();
+        dto.setId(categoria.getId());
+        dto.setNombre(categoria.getNombre());
 
-    private Categoria convertToEntity(CategoriaDTO dto) {
-        Categoria categoria = new Categoria();
-        categoria.setId(dto.getId());
-        categoria.setNombre(dto.getNombre());
-        return categoria;
+        // Manejo seguro de la cantidad de productos
+        try {
+            dto.setCantidadProductos(categoria.getCantidadProductos());
+        } catch (Exception e) {
+            log.warn("Error al obtener cantidad de productos para categoría {}: {}", categoria.getId(), e.getMessage());
+            dto.setCantidadProductos(0);
+        }
+
+        return dto;
     }
 }

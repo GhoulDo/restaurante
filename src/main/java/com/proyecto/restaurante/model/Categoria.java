@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,6 +20,18 @@ public class Categoria extends BaseEntity {
     private List<Producto> productos;
 
     public int getCantidadProductos() {
-        return productos != null ? productos.size() : 0;
+        // Verificación más robusta para evitar NullPointerException
+        if (productos == null) {
+            return 0;
+        }
+        return productos.size();
+    }
+
+    // Método para inicializar la lista si es null
+    public List<Producto> getProductos() {
+        if (productos == null) {
+            productos = new ArrayList<>();
+        }
+        return productos;
     }
 }

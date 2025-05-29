@@ -3,51 +3,47 @@
 ================================================================================
 
 DESARROLLO: http://localhost:8081/api
-PRODUCCIÓN: https://restaurante-api.onrender.com/api
+PRODUCCIÓN: https://restaurante-api-ovsa.onrender.com/api
 
-🚨 TROUBLESHOOTING RENDER - ACTUALIZADO
+✅ PROBLEMA RESUELTO: URL INCORRECTA EN DOCUMENTACIÓN
+🔧 URL CORRECTA: https://restaurante-api-ovsa.onrender.com
 
-PROBLEMA ACTUAL: API no responde en Render
-SÍNTOMAS: "Failed to fetch" en frontend y Postman
-
-🔧 ENDPOINTS DE DEBUG MEJORADOS:
+🔧 ENDPOINTS DE DEBUG:
 GET / - Información completa del servicio + endpoints disponibles
 GET /health - Estado de salud detallado con info de BD
 GET /ping - Ping rápido para verificación
 GET /test-cors - Test de configuración CORS
 GET /debug - 🆕 Información completa de debugging
 
-📊 VERIFICACIONES PASO A PASO:
+✅ SERVICIO CONFIRMADO ACTIVO:
+- URL Base: https://restaurante-api-ovsa.onrender.com
+- API Base: https://restaurante-api-ovsa.onrender.com/api
+- Estado: ✅ RUNNING
+- Ambiente: RENDER
+- Base de datos: ✅ CONECTADA
+- CORS: ✅ HABILITADO
+- Keep-alive: ✅ ACTIVO
 
-1. ✅ VERIFICAR SI EL SERVICIO ESTÁ DESPLEGADO:
-   curl https://restaurante-api.onrender.com/health
-   
-   Si responde: ✅ Servicio activo
-   Si no responde: ❌ Servicio caído o no desplegado
+🚨 COMANDOS DE VERIFICACIÓN ACTUALIZADOS:
 
-2. ✅ VERIFICAR LOGS EN RENDER:
-   - Ir a Render Dashboard
-   - Seleccionar el servicio "restaurante-api"
-   - Ver "Logs" en tiempo real
-   - Buscar errores de inicio o deployment
+# Test básico de conectividad
+curl -v https://restaurante-api-ovsa.onrender.com/ping
 
-3. ✅ VERIFICAR VARIABLES DE ENTORNO:
-   curl https://restaurante-api.onrender.com/debug
-   
-   Debería mostrar:
-   - RENDER: "true"
-   - RENDER_EXTERNAL_URL: URL del servicio
-   - PORT: Puerto asignado
-   - DATABASE_URL: "***SET***"
+# Test de salud completo
+curl https://restaurante-api-ovsa.onrender.com/health
 
-4. ✅ VERIFICAR ESTADO DE LA BASE DE DATOS:
-   - En Render Dashboard ir a PostgreSQL database
-   - Verificar que esté "Available"
-   - Verificar conexiones activas
+# Test de debug (info completa)
+curl https://restaurante-api-ovsa.onrender.com/debug
 
-5. ✅ FORZAR REDEPLOY:
-   - En Render Dashboard > Manual Deploy
-   - O hacer push a GitHub para trigger automático
+# Test de API empleados
+curl https://restaurante-api-ovsa.onrender.com/api/empleados
+
+# Test de CORS
+curl -H "Origin: http://localhost:3000" \
+     -H "Access-Control-Request-Method: GET" \
+     -H "Access-Control-Request-Headers: X-Requested-With" \
+     -X OPTIONS \
+     https://restaurante-api-ovsa.onrender.com/api/empleados
 
 🛠️ CORS CONFIGURADO CORRECTAMENTE:
 - allowedOriginPatterns: * (permite todos los orígenes)
@@ -55,129 +51,29 @@ GET /debug - 🆕 Información completa de debugging
 - Métodos permitidos: GET, POST, PUT, DELETE, OPTIONS, PATCH
 - Headers permitidos: todos (*)
 
-🤖 KEEP-ALIVE MEJORADO PARA RENDER:
+🤖 KEEP-ALIVE ACTIVO PARA RENDER:
 ⏰ HORARIOS OPTIMIZADOS:
    - Ping cada 5 minutos (24/7) - Solo en Render
    - Ping cada 2 minutos (8 AM - 10 PM) - Horas laborales
    - Ping cada 20 minutos - Warm-up service
 
-🚨 COMANDOS DE VERIFICACIÓN INMEDIATA:
-
-# Test básico de conectividad
-curl -v https://restaurante-api.onrender.com/ping
-
-# Test de salud completo
-curl https://restaurante-api.onrender.com/health
-
-# Test de debug (info completa)
-curl https://restaurante-api.onrender.com/debug
-
-# Test de API empleados
-curl https://restaurante-api.onrender.com/api/empleados
-
-# Test de CORS
-curl -H "Origin: http://localhost:3000" \
-     -H "Access-Control-Request-Method: GET" \
-     -H "Access-Control-Request-Headers: X-Requested-With" \
-     -X OPTIONS \
-     https://restaurante-api.onrender.com/api/empleados
-
-📱 CONFIGURACIÓN FRONTEND ACTUALIZADA:
-
-// ✅ CONFIGURACIÓN ROBUSTA PARA FRONTEND
-const API_BASE_URL = 'https://restaurante-api.onrender.com/api';
-
-// Test de conectividad mejorado
-const testConnection = async () => {
-  const endpoints = ['/health', '/ping', '/'];
-  
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(`https://restaurante-api.onrender.com${endpoint}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`✅ Endpoint ${endpoint} funcionando:`, data);
-        return true;
-      }
-    } catch (error) {
-      console.error(`❌ Endpoint ${endpoint} falló:`, error);
-    }
-  }
-  
-  console.error('🔴 Todos los endpoints fallaron - API no disponible');
-  return false;
-};
-
-// Función de request con retry
-const apiRequestWithRetry = async (endpoint, options = {}, retries = 3) => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...options.headers 
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return response.status === 204 ? null : await response.json();
-    } catch (error) {
-      console.error(`❌ Intento ${i + 1} falló:`, error);
-      if (i === retries - 1) throw error;
-      
-      // Esperar antes del siguiente intento
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-    }
-  }
-};
-
-🔍 POSIBLES CAUSAS DEL PROBLEMA:
-
-1. ❌ SERVICIO NO DESPLEGADO CORRECTAMENTE
-   - Verificar en Render Dashboard que el deploy fue exitoso
-   - Revisar logs de build y deploy
-
-2. ❌ ERROR EN VARIABLES DE ENTORNO
-   - Verificar DATABASE_URL en Render
-   - Verificar RENDER_EXTERNAL_URL
-
-3. ❌ PROBLEMA DE BASE DE DATOS
-   - PostgreSQL database desconectada
-   - Credenciales incorrectas
-
-4. ❌ PROBLEMA DE MEMORIA/RECURSOS
-   - Render Free Tier limitations
-   - Service sleeping por inactividad
-
-5. ❌ ERROR EN EL CÓDIGO
-   - Exception al iniciar la aplicación
-   - Dependency injection problems
-
 ================================================================================
-                            CONFIGURACIÓN PARA FRONTEND
+                            CONFIGURACIÓN PARA FRONTEND - CORREGIDA
 ================================================================================
 
-// IMPORTANTE: Para evitar el error "NODE_ENV cannot be accessed on the client"
-// Usar esta configuración en el frontend:
-
-// ✅ CORRECTO - Para Next.js/React
+// ✅ CONFIGURACIÓN CORRECTA - URLs ACTUALIZADAS
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:8081/api' 
-    : 'https://restaurante-api.onrender.com/api');
+    : 'https://restaurante-api-ovsa.onrender.com/api');
 
 // ✅ CORRECTO - Para aplicaciones SPA
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:8081/api'
-  : 'https://restaurante-api.onrender.com/api';
+  : 'https://restaurante-api-ovsa.onrender.com/api';
 
-// ✅ CORRECTO - Configuración manual
-const API_BASE_URL = 'https://restaurante-api.onrender.com/api'; // Para producción
+// ✅ CORRECTO - Configuración manual ACTUALIZADA
+const API_BASE_URL = 'https://restaurante-api-ovsa.onrender.com/api'; // Para producción
 // const API_BASE_URL = 'http://localhost:8081/api'; // Para desarrollo
 
 const defaultHeaders = {
@@ -212,10 +108,10 @@ const apiRequest = async (endpoint, options = {}) => {
   }
 };
 
-// Test de conectividad
+// Test de conectividad ACTUALIZADO
 const testConnection = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+    const response = await fetch('https://restaurante-api-ovsa.onrender.com/health');
     const data = await response.json();
     console.log('🟢 Backend conectado:', data);
     return true;
@@ -225,34 +121,82 @@ const testConnection = async () => {
   }
 };
 
+// ✅ CONFIGURACIÓN ROBUSTA PARA FRONTEND - ACTUALIZADA
+const API_BASE_URL_PRODUCTION = 'https://restaurante-api-ovsa.onrender.com/api';
+
+// Test de conectividad mejorado con URL correcta
+const testConnection = async () => {
+  const endpoints = ['/health', '/ping', '/'];
+  
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(`https://restaurante-api-ovsa.onrender.com${endpoint}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ Endpoint ${endpoint} funcionando:`, data);
+        return true;
+      }
+    } catch (error) {
+      console.error(`❌ Endpoint ${endpoint} falló:`, error);
+    }
+  }
+  
+  console.error('🔴 Todos los endpoints fallaron - API no disponible');
+  return false;
+};
+
+// Función de request con retry - URL CORREGIDA
+const apiRequestWithRetry = async (endpoint, options = {}, retries = 3) => {
+  const CORRECT_API_URL = 'https://restaurante-api-ovsa.onrender.com/api';
+  
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(`${CORRECT_API_URL}${endpoint}`, {
+        ...options,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...options.headers 
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.status === 204 ? null : await response.json();
+    } catch (error) {
+      console.error(`❌ Intento ${i + 1} falló:`, error);
+      if (i === retries - 1) throw error;
+      
+      // Esperar antes del siguiente intento
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+};
+
 ================================================================================
                         TROUBLESHOOTING - ERRORES COMUNES
 ================================================================================
 
+✅ PROBLEMA PRINCIPAL RESUELTO:
+❌ ERROR: URL INCORRECTA
+CAUSA: Documentación tenía https://restaurante-api.onrender.com
+SOLUCIÓN: ✅ URL CORRECTA: https://restaurante-api-ovsa.onrender.com
+
 ❌ ERROR: "Failed to fetch"
-CAUSA: CORS o backend no disponible
-SOLUCIÓN: 
-1. Verificar que el backend esté corriendo
-2. Verificar la URL de la API
-3. Test: curl https://tu-api.onrender.com/health
+CAUSA: URL incorrecta en frontend
+SOLUCIÓN: ✅ Usar https://restaurante-api-ovsa.onrender.com/api
 
 ❌ ERROR: "NODE_ENV cannot be accessed on the client"
 CAUSA: process.env.NODE_ENV usado en frontend
-SOLUCIÓN: Usar las configuraciones de arriba
+SOLUCIÓN: Usar las configuraciones de arriba con URL correcta
 
-❌ ERROR: "404 Not Found"
-CAUSA: Endpoint incorrecto
-SOLUCIÓN: Verificar rutas disponibles en GET /
-
-❌ ERROR: "CORS policy"
-CAUSA: Configuración CORS incorrecta
-SOLUCIÓN: Backend ya configurado con CORS para todos los orígenes
-
-VERIFICACIONES BÁSICAS:
-1. Backend activo: GET https://tu-api.onrender.com/health
-2. CORS funcionando: GET https://tu-api.onrender.com/test-cors
-3. Endpoints: GET https://tu-api.onrender.com/
-4. API disponible: GET https://tu-api.onrender.com/api/empleados
+VERIFICACIONES BÁSICAS ACTUALIZADAS:
+1. Backend activo: GET https://restaurante-api-ovsa.onrender.com/health ✅
+2. CORS funcionando: GET https://restaurante-api-ovsa.onrender.com/test-cors ✅
+3. Endpoints: GET https://restaurante-api-ovsa.onrender.com/ ✅
+4. API disponible: GET https://restaurante-api-ovsa.onrender.com/api/empleados ✅
 
 ================================================================================
                                CATEGORÍAS ✅
@@ -763,7 +707,7 @@ CORS TESTING:
 El error "When allowCredentials is true, allowedOrigins cannot contain '*'" ha sido resuelto.
 
 ✅ VERIFICACIÓN RENDER:
-1. Acceder a https://restaurante-api.onrender.com/health
+1. Acceder a https://restaurante-api-ovsa.onrender.com/health
 2. Debería retornar JSON con status: "UP"
 3. Si no responde, el servicio está caído
 
