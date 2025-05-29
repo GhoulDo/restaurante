@@ -6,6 +6,7 @@ import com.proyecto.restaurante.model.Producto;
 import com.proyecto.restaurante.repository.InventarioRepository;
 import com.proyecto.restaurante.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class InventarioService {
 
     private final InventarioRepository inventarioRepository;
@@ -32,15 +34,36 @@ public class InventarioService {
         return convertToDTO(inventario);
     }
 
+    public InventarioDTO findByProductoId(Long productoId) {
+        Inventario inventario = inventarioRepository.findByProductoId(productoId)
+                .orElseThrow(() -> new RuntimeException("Inventario para el producto no encontrado"));
+        return convertToDTO(inventario);
+    }
+
+    public List<InventarioDTO> findByStockBajo(Integer minimo) {
+        return inventarioRepository.findByCantidadStockLessThan(minimo).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     public InventarioDTO save(InventarioDTO inventarioDTO) {
+        // Verificar que el producto existe
         Producto producto = productoRepository.findById(inventarioDTO.getProductoId())
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        // Verificar que no existe ya un inventario para este producto
+        if (inventarioRepository.findByProductoId(inventarioDTO.getProductoId()).isPresent()) {
+            throw new RuntimeException("Ya existe un registro de inventario para este producto");
+        }
 
         Inventario inventario = new Inventario();
         inventario.setProducto(producto);
         inventario.setCantidadStock(inventarioDTO.getCantidadStock());
 
         Inventario savedInventario = inventarioRepository.save(inventario);
+        log.info("Inventario creado para producto ID: {} con stock: {}",
+                producto.getId(), savedInventario.getCantidadStock());
+
         return convertToDTO(savedInventario);
     }
 
@@ -48,45 +71,44 @@ public class InventarioService {
         Inventario inventario = inventarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
 
+        // Si se cambia el producto, verificar que existe
+        if (!inventario.getProducto().getId().equals(inventarioDTO.getProductoId())) {
+            Producto producto = productoRepository.findById(inventarioDTO.getProductoId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+            inventario.setProducto(producto);
+        }
+
         inventario.setCantidadStock(inventarioDTO.getCantidadStock());
+
         Inventario updatedInventario = inventarioRepository.save(inventario);
         return convertToDTO(updatedInventario);
     }
 
-    public InventarioDTO actualizarStock(Long productoId, Integer cantidad) {
-        Producto producto = productoRepository.findById(productoId)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        Inventario inventario = inventarioRepository.findByProducto(producto)
-                .orElseThrow(() -> new RuntimeException("Inventario no encontrado para el producto"));
+    public InventarioDTO updateStock(Long productoId, Integer cantidad) {
+        Inventario inventario = inventarioRepository.findByProductoId(productoId)
+                .orElseThrow(() -> new RuntimeException("Inventario para el producto no encontrado"));
 
         inventario.setCantidadStock(cantidad);
         Inventario updatedInventario = inventarioRepository.save(inventario);
+
+        log.info("Stock actualizado para producto ID: {} a cantidad: {}", productoId, cantidad);
         return convertToDTO(updatedInventario);
     }
 
-    public List<InventarioDTO> findStockBajo(Integer minimo) {
-        return inventarioRepository.findProductosConStockBajo(minimo).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
     public void delete(Long id) {
+        if (!inventarioRepository.existsById(id)) {
+            throw new RuntimeException("Inventario no encontrado");
+        }
         inventarioRepository.deleteById(id);
     }
 
     private InventarioDTO convertToDTO(Inventario inventario) {
-        return new InventarioDTO(
-                inventario.getId(),
-                inventario.getProducto().getId(),
-                inventario.getProducto().getNombre(),
-                inventario.getCantidadStock(),
-                inventario.getFechaActualizacion());
-    }
-
-    public InventarioDTO findByProductoId(Long productoId) {
-        Inventario inventario = inventarioRepository.findByProductoId(productoId)
-                .orElseThrow(() -> new RuntimeException("Inventario no encontrado para el producto"));
-        return convertToDTO(inventario);
+        InventarioDTO dto = new InventarioDTO();
+        dto.setId(inventario.getId());
+        dto.setProductoId(inventario.getProducto().getId());
+        dto.setNombreProducto(inventario.getProducto().getNombre());
+        dto.setCantidadStock(inventario.getCantidadStock());
+        dto.setFechaActualizacion(inventario.getFechaActualizacion());
+        return dto;
     }
 }
