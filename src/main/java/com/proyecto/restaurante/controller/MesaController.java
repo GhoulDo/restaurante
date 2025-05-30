@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequestMapping("/api/mesas")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@Validated
 @Slf4j
 public class MesaController {
 
@@ -51,7 +53,6 @@ public class MesaController {
         try {
             log.info("GET /api/mesas/estado/{} - Obteniendo mesas por estado", estado);
             List<MesaDTO> mesas = mesaService.findByEstado(estado);
-            log.info("GET /api/mesas/estado/{} - Retornando {} mesas", estado, mesas.size());
             return ResponseEntity.ok(mesas);
         } catch (Exception e) {
             log.error("Error en GET /api/mesas/estado/{}: {}", estado, e.getMessage());
@@ -62,7 +63,7 @@ public class MesaController {
     @PostMapping
     public ResponseEntity<MesaDTO> createMesa(@Valid @RequestBody MesaDTO mesaDTO) {
         try {
-            log.info("POST /api/mesas - Creando nueva mesa: {}", mesaDTO.getNumeroMesa());
+            log.info("POST /api/mesas - Creando mesa número: {}", mesaDTO.getNumeroMesa());
             MesaDTO nuevaMesa = mesaService.save(mesaDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevaMesa);
         } catch (Exception e) {
@@ -86,7 +87,7 @@ public class MesaController {
     @PatchMapping("/{id}/estado")
     public ResponseEntity<MesaDTO> cambiarEstadoMesa(@PathVariable Long id, @RequestParam Mesa.EstadoMesa estado) {
         try {
-            log.info("PATCH /api/mesas/{}/estado - Cambiando estado a: {}", id, estado);
+            log.info("PATCH /api/mesas/{}/estado?estado={} - Cambiando estado", id, estado);
             MesaDTO mesaActualizada = mesaService.cambiarEstado(id, estado);
             return ResponseEntity.ok(mesaActualizada);
         } catch (Exception e) {
